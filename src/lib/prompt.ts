@@ -116,7 +116,7 @@ ${brandImageList()}
 - Use bento/big-number/stat-row for numbers, not prose.
 - Use quote/quote-photo for testimonials, not statement.
 - Every slide must fit cleanly into one 16:9 screen without overflow.
-- Team slide: max 6 members per slide. If there are more people, split them
+- Team slide: max 4 members per slide. If there are more people, split them
   across multiple team slides.
 - If the user pasted a long article, messy notes, transcript, or raw draft,
   treat it as source material, not slide-ready copy.

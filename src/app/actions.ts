@@ -179,11 +179,11 @@ function chunkArray<T>(items: T[], size: number): T[][] {
 
 function normalizeDeckForLayout(deck: Deck): Deck {
   const slides = deck.slides.flatMap((slide) => {
-    if (slide.type !== "team" || slide.members.length <= 6) {
+    if (slide.type !== "team" || slide.members.length <= 4) {
       return [slide];
     }
 
-    const groups = chunkArray(slide.members, 6);
+    const groups = chunkArray(slide.members, 4);
 
     return groups.map((members, idx) => ({
       ...slide,
