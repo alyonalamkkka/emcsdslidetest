@@ -12,6 +12,11 @@
    ============================================================ */
 
 :root {
+  --font-app-sans:
+    "Inter", "Inter Tight", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-app-display:
+    "Inter Tight", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
   /* Slide / dark surfaces (brandbook) */
   --emcd-bg-0: #0a0a0a;
   --emcd-bg-1: #111111;
@@ -68,14 +73,14 @@
   --color-brand-light: var(--emcd-brand-light);
   --color-brand-ink: var(--emcd-brand-ink);
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-app-sans);
+  --font-display: var(--font-app-display);
 }
 
 html, body {
   background: var(--app-bg);
   color: var(--app-ink-0);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-app-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -167,7 +172,7 @@ html, body {
   position: absolute;
   right: -2rem;
   bottom: -4rem;
-  font-family: var(--font-inter-tight), sans-serif;
+  font-family: var(--font-app-display);
   font-size: clamp(14rem, 26vw, 32rem);
   font-weight: 700;
   line-height: 0.8;
@@ -188,21 +193,21 @@ html, body {
 
 /* Utility: clamp display titles so they never overflow on narrow viewports */
 .display-xl {
-  font-family: var(--font-inter-tight), var(--font-inter), sans-serif;
+  font-family: var(--font-app-display);
   font-weight: 700;
   line-height: 1.02;
   letter-spacing: -0.025em;
   font-size: clamp(2.5rem, 6.5vw, 6rem);
 }
 .display-lg {
-  font-family: var(--font-inter-tight), var(--font-inter), sans-serif;
+  font-family: var(--font-app-display);
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.02em;
   font-size: clamp(2rem, 5vw, 4.5rem);
 }
 .display-md {
-  font-family: var(--font-inter-tight), var(--font-inter), sans-serif;
+  font-family: var(--font-app-display);
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.015em;

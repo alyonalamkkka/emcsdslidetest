@@ -1,0 +1,11 @@
+services:
+  emcd-slides:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: emcd-slides
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - "3000:3000"
