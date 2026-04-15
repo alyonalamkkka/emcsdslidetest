@@ -91,7 +91,7 @@ export function PromptForm() {
         </button>
         {source === "mock" && (
           <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-brand px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-brand-ink">
-            Mock deck · добавь ANTHROPIC_API_KEY в .env.local
+            Mock deck · Claude unavailable or Anthropic credits exhausted
           </div>
         )}
         <Deck deck={deck} />

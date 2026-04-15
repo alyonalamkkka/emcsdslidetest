@@ -92,6 +92,18 @@ function buildBrief(
   return merged;
 }
 
+function shouldFallbackToMock(message: string): boolean {
+  const normalized = message.toLowerCase();
+
+  return (
+    normalized.includes("credit balance is too low") ||
+    normalized.includes("plans & billing") ||
+    normalized.includes("insufficient") ||
+    normalized.includes("rate limit") ||
+    normalized.includes("overloaded")
+  );
+}
+
 /**
  * Server Action — accepts a FormData payload from the client form:
  *   - `brief`: text brief
@@ -168,6 +180,11 @@ export async function generateDeck(formData: FormData): Promise<GenerateResult> 
     return { ok: true, deck: validated.data, source: "claude" };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+
+    if (shouldFallbackToMock(msg)) {
+      return { ok: true, deck: mockDeck, source: "mock" };
+    }
+
     return { ok: false, error: `Вызов Claude упал: ${msg}` };
   }
 }
