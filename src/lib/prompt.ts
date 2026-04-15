@@ -114,4 +114,16 @@ ${brandImageList()}
 - **Sentence case for titles** — never UPPERCASE.
 - Mix slide types for rhythm: don't put 5 bullet lists in a row.
 - Use bento/big-number/stat-row for numbers, not prose.
-- Use quote/quote-photo for testimonials, not statement.`;
+- Use quote/quote-photo for testimonials, not statement.
+- Every slide must fit cleanly into one 16:9 screen without overflow.
+- Team slide: max 6 members per slide. If there are more people, split them
+  across multiple team slides.
+- If the user pasted a long article, messy notes, transcript, or raw draft,
+  treat it as source material, not slide-ready copy.
+- In that case, first infer the core topic, target audience, presentation goal,
+  and the 4-8 strongest ideas worth putting on slides.
+- Compress aggressively and build a clean narrative. Never mirror the source
+  paragraph by paragraph.
+- Never dump long raw paragraphs into slide bodies or bullet lists.
+- If the user's ask is underspecified, choose a sensible narrative and a clear,
+  concise deck title.`;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { generateDeck, type GenerateResult } from "@/app/actions";
 import type { Deck as DeckType } from "@/lib/schema";
 import { Deck } from "./Deck";
-import { EmcdSymbol, EmcdWordmark } from "./Logo";
+import { EmcdWordmark } from "./Logo";
 
 const EXAMPLES = [
   "Презентация про итоги Q1 2026 для отдела маркетинга EMCD — 8 слайдов, обязательно с ключевыми цифрами (активные пользователи, прирост, выручка) и timeline по месяцам.",
@@ -20,9 +20,9 @@ function Header() {
   return (
     <header className="flex items-center justify-between px-6 pt-6 md:px-10 md:pt-8">
       <div className="flex items-center gap-3">
-        <EmcdSymbol tone="dark" size={44} />
-        <span className="text-xl font-semibold tracking-tight text-app-ink-0">
-          EMCD Slides
+        <EmcdWordmark tone="dark" width={98} className="shrink-0" />
+        <span className="text-lg font-semibold tracking-tight text-app-ink-0 md:text-xl">
+          Slides
         </span>
       </div>
       <nav className="flex items-center gap-8 text-xs uppercase tracking-[0.2em] text-app-ink-2">
@@ -38,6 +38,35 @@ function Header() {
   );
 }
 
+function GeneratingOverlay() {
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-app-bg/78 px-6 backdrop-blur-md">
+      <div className="w-full max-w-[640px] rounded-[32px] bg-app-card px-6 py-6 shadow-[0_24px_80px_rgba(10,10,10,0.12)] ring-1 ring-app-border md:px-8 md:py-8">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-brand" />
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-app-ink-3">
+            EMCD Slides · генерация
+          </div>
+        </div>
+
+        <div className="mb-3 text-2xl font-semibold tracking-tight text-app-ink-0 md:text-3xl">
+          Собираю презентацию
+        </div>
+        <p className="max-w-[44ch] text-sm leading-relaxed text-app-ink-2 md:text-base">
+          Анализирую бриф, раскладываю структуру и подбираю подходящие
+          шаблоны слайдов.
+        </p>
+
+        <div className="mt-8 space-y-3">
+          <div className="h-3 w-[84%] animate-pulse rounded-full bg-app-border" />
+          <div className="h-3 w-[66%] animate-pulse rounded-full bg-app-border [animation-delay:120ms]" />
+          <div className="h-3 w-[74%] animate-pulse rounded-full bg-app-border [animation-delay:240ms]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PromptForm() {
   const [brief, setBrief] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -47,6 +76,7 @@ export function PromptForm() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const longBriefHint = brief.trim().length > 900;
 
   function handleGenerate() {
     setError(null);
@@ -101,6 +131,7 @@ export function PromptForm() {
 
   return (
     <main className="min-h-screen bg-app-bg text-app-ink-0">
+      {isPending && <GeneratingOverlay />}
       <Header />
 
       <div className="mx-auto flex w-full max-w-[980px] flex-col gap-10 px-6 py-16 md:py-24">
@@ -111,12 +142,13 @@ export function PromptForm() {
         </div>
 
         {/* Huge display title (sentence case, per brandbook) */}
-        <h1 className="font-display text-[clamp(2.75rem,7vw,5.5rem)] font-bold leading-[1.02] tracking-[-0.025em] text-app-ink-0">
-          Опиши презентацию —
-          <br />
-          <span className="text-app-ink-2">соберу в стиле </span>
-          <span className="italic text-app-ink-0">EMCD</span>
-          <span className="text-app-ink-2">.</span>
+        <h1 className="font-display text-[clamp(2.75rem,7vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.03em] text-app-ink-0">
+          <span className="block">Опиши презентацию</span>
+          <span className="mt-3 block text-app-ink-2">
+            — соберу в стиле{" "}
+            <span className="italic text-app-ink-0">EMCD</span>
+            <span className="text-app-ink-2">.</span>
+          </span>
         </h1>
 
         {/* Big minimalist textarea */}
@@ -135,6 +167,11 @@ export function PromptForm() {
             dragging ? "ring-2 ring-brand" : "ring-app-border"
           }`}
         >
+          {longBriefHint && (
+            <div className="border-b border-app-border bg-app-card-alt px-8 py-3 text-[11px] font-medium uppercase tracking-[0.2em] text-app-ink-2">
+              Большой текст ок — сначала сожму смысл, потом соберу структуру слайдов.
+            </div>
+          )}
           <textarea
             value={brief}
             onChange={(e) => setBrief(e.target.value)}
@@ -200,8 +237,17 @@ export function PromptForm() {
               disabled={isPending || !brief.trim()}
               className="inline-flex items-center gap-2 rounded-full bg-app-ink-0 px-6 py-3 text-xs font-bold uppercase tracking-[0.18em] text-brand transition hover:bg-app-ink-1 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {isPending ? "Собираю слайды…" : "Создать презентацию"}
-              <span aria-hidden>→</span>
+              {isPending ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border border-brand/35 border-t-brand" />
+                  Собираю слайды…
+                </>
+              ) : (
+                <>
+                  Создать презентацию
+                  <span aria-hidden>→</span>
+                </>
+              )}
             </button>
           </div>
         </div>

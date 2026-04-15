@@ -13,6 +13,8 @@ export type GenerateResult =
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8 MB cap per file
 const MAX_CONTEXT_CHARS = 60_000; // trim extracted text to avoid blowing context
+const LONG_BRIEF_CHARS = 1_200;
+const LONG_BRIEF_LINES = 12;
 
 /**
  * Extract plain text from an uploaded file. Supports .txt / .md / .docx / .pptx.
@@ -68,12 +70,73 @@ async function extractFileText(file: File): Promise<{ text: string; note?: strin
   }
 }
 
+function normalizeBriefText(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\t/g, " ")
+    .replace(/[ \u00A0]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function isLongBrief(text: string): boolean {
+  const lineCount = text.split("\n").filter((line) => line.trim().length > 0).length;
+  return text.length >= LONG_BRIEF_CHARS || lineCount >= LONG_BRIEF_LINES;
+}
+
+function cleanSignalLine(line: string): string {
+  return line
+    .replace(/^[\s\-*•\d.)]+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractSignalLines(text: string): string[] {
+  const seen = new Set<string>();
+  const picked: string[] = [];
+
+  for (const rawLine of text.split("\n")) {
+    const line = cleanSignalLine(rawLine);
+    if (line.length < 24) continue;
+
+    const shortened = line.length > 180 ? `${line.slice(0, 177)}...` : line;
+    const key = shortened.toLowerCase();
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    picked.push(shortened);
+
+    if (picked.length >= 8) break;
+  }
+
+  return picked;
+}
+
 function buildBrief(
   brief: string,
   files: Array<{ name: string; text: string }>,
   notes: string[],
 ): string {
-  const parts = [`Brief:\n${brief.trim()}`];
+  const normalizedBrief = normalizeBriefText(brief);
+  const longBrief = isLongBrief(normalizedBrief);
+  const signalLines = longBrief ? extractSignalLines(normalizedBrief) : [];
+  const parts: string[] = [];
+
+  if (longBrief) {
+    parts.push(
+      "## Interpretation mode\n" +
+        "The user pasted long raw material. Distill it into a concise presentation.\n" +
+        "Infer topic, audience, objective, and strongest ideas.\n" +
+        "Do not preserve paragraph structure or copy long chunks verbatim.",
+    );
+
+    if (signalLines.length) {
+      parts.push(`\n\n## Quick signal\n- ${signalLines.join("\n- ")}`);
+    }
+  }
+
+  parts.push(`\n\n## User brief\n${normalizedBrief}`);
+
   if (files.length) {
     parts.push("\n\n## Uploaded documents\n");
     for (const f of files) {
@@ -102,6 +165,37 @@ function shouldFallbackToMock(message: string): boolean {
     normalized.includes("rate limit") ||
     normalized.includes("overloaded")
   );
+}
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+
+  return chunks;
+}
+
+function normalizeDeckForLayout(deck: Deck): Deck {
+  const slides = deck.slides.flatMap((slide) => {
+    if (slide.type !== "team" || slide.members.length <= 6) {
+      return [slide];
+    }
+
+    const groups = chunkArray(slide.members, 6);
+
+    return groups.map((members, idx) => ({
+      ...slide,
+      title:
+        groups.length > 1
+          ? `${slide.title} · ${idx + 1}/${groups.length}`
+          : slide.title,
+      members,
+    }));
+  });
+
+  return { ...deck, slides };
 }
 
 /**
@@ -149,7 +243,10 @@ export async function generateDeck(formData: FormData): Promise<GenerateResult> 
       messages: [
         {
           role: "user",
-          content: `${merged}\n\nReturn the JSON deck now.`,
+          content:
+            `${merged}\n\n` +
+            "Return one valid Deck JSON object now. " +
+            "If the input is long, convert it into a compact slide narrative instead of copying the source text.",
         },
       ],
     });
@@ -177,7 +274,11 @@ export async function generateDeck(formData: FormData): Promise<GenerateResult> 
       };
     }
 
-    return { ok: true, deck: validated.data, source: "claude" };
+    return {
+      ok: true,
+      deck: normalizeDeckForLayout(validated.data),
+      source: "claude",
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
 
